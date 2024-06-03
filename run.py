@@ -28,25 +28,7 @@ def transcribe_audio(mp3_file, model_name="medium"):
     result = model.transcribe(mp3_file)
     return result["text"]
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Download YouTube video as MP3 and transcribe using Whisper."
-    )
-    parser.add_argument("--url", type=str, help="The URL of the YouTube video")
-    args = parser.parse_args()
-
-    if args.url:
-        youtube_url = args.url
-    else:
-        youtube_url = input("Enter the YouTube URL: ")
-
-    # Set the output path to ./outputs/
-    output_path = "./outputs/"
-
-    # Create the outputs directory if it doesn't exist
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
-
+def process_url(youtube_url, output_path):
     mp3_file, video_title = download_youtube_video_as_mp3(youtube_url, output_path)
     print(f"MP3 file saved to: {mp3_file}")
 
@@ -60,6 +42,35 @@ def main():
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(transcription)
     print(f"Transcription saved to: {output_file}")
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Download YouTube video as MP3 and transcribe using Whisper."
+    )
+    parser.add_argument("--url", type=str, help="The URL of the YouTube video")
+    args = parser.parse_args()
+
+    # Set the output path to ./outputs/
+    output_path = "./outputs/"
+
+    # Create the outputs directory if it doesn't exist
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    while True:
+        if args.url:
+            youtube_url = args.url
+            args.url = None  # Reset args.url after first use
+        else:
+            youtube_url = input("Enter the YouTube URL (or type 'exit' to quit): ")
+
+        if youtube_url.lower() == "exit":
+            break
+
+        try:
+            process_url(youtube_url, output_path)
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     if torch.cuda.is_available():
